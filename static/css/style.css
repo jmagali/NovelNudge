@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    padding: 40px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+input {
+    width: 60%;
+    padding: 12px;
+    margin-right: 10px;
+}
+
+button {
+    padding: 12px 20px;
+}
+
+.result-box, .book-card {
+    background: white;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #ccc;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.book-card img {
+    width: 100%;
+    border-radius: 6px;
+}
