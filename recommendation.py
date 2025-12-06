@@ -20,6 +20,64 @@ def get_top_n_similar(vector_list, target_vector, top_n=10, exclude_index=None):
     return [(i, scores[i]) for i in top_indices]
 
 def recommend_from_title(user_input):
+    # PRE-COMPUTATION
+    csv_file = "./data/processed_data.csv"
+    description_column = "description"
+    title_column = "title"
+
+    df = pd.read_csv(csv_file)
+    descriptionTxt = df[description_column].astype(str).tolist()
+    titleTxt = df[title_column].astype(str).tolist()
+
+    # Get reranker model
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    # Combine authors into one string per book
+    authorTxt = df['authors'].apply(lambda authors: " ".join(eval(authors)) if isinstance(authors, str) else "").tolist()
+
+    # Combine genres into one string per book
+    genreTxt = df['genre_list'].apply(lambda genres: " ".join(eval(genres)) if isinstance(genres, str) else "").tolist()
+
+    vector_files = {
+        "description": "./data/vectors/vectorsDes.npy",
+        "author": "./data/vectors/vectorsAuthor.npy",
+        "genre": "./data/vectors/vectorsGenre.npy",
+    }
+
+    # Load vectors if they exist
+    if all(os.path.exists(f) for f in vector_files.values()):
+        print("Loading saved vectors from disk...")
+        vectorsDes = np.load(vector_files["description"])
+        vectorsAuthor = np.load(vector_files["author"])
+        vectorsGenre = np.load(vector_files["genre"])
+    else:
+        print("Encoding vectors, this may take some time...")
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        
+        # Create vectors
+        vectorsDes = model.encode(descriptionTxt, batch_size=256, show_progress_bar=True)
+        vectorsAuthor = model.encode(authorTxt, batch_size=256, show_progress_bar=True)
+        vectorsGenre = model.encode(genreTxt, batch_size=256, show_progress_bar=True)
+
+        # Save vectors for future runs
+        np.save(vector_files["description"], vectorsDes)
+        np.save(vector_files["author"], vectorsAuthor)
+        np.save(vector_files["genre"], vectorsGenre)
+        print("Vectors saved to disk.")
+
+    # Vector weights
+    desc_weight = 1.0
+    genre_weight = 0.3  # very small weight for genre
+    author_weight = 0.6 # small weight for author
+
+    # Sum the vectors
+    combined_vectors = (vectorsDes * desc_weight + vectorsGenre * genre_weight + vectorsAuthor * author_weight)
+
+    # Normalize combined vectors (turn into unit vector equivalent)
+    combined_vectors = normalize(combined_vectors)
+    
+    # END OF COPIED CODE
+
     user_input = user_input.strip().lower()
     
     # Use RapidFuzz for title matching
@@ -57,6 +115,64 @@ def recommend_from_title(user_input):
     }
     
 def recommend_from_query(query):
+    # PRE-COMPUTATION
+    csv_file = "./data/processed_data.csv"
+    description_column = "description"
+    title_column = "title"
+
+    df = pd.read_csv(csv_file)
+    descriptionTxt = df[description_column].astype(str).tolist()
+    titleTxt = df[title_column].astype(str).tolist()
+
+    # Get reranker model
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    # Combine authors into one string per book
+    authorTxt = df['authors'].apply(lambda authors: " ".join(eval(authors)) if isinstance(authors, str) else "").tolist()
+
+    # Combine genres into one string per book
+    genreTxt = df['genre_list'].apply(lambda genres: " ".join(eval(genres)) if isinstance(genres, str) else "").tolist()
+
+    vector_files = {
+        "description": "./data/vectors/vectorsDes.npy",
+        "author": "./data/vectors/vectorsAuthor.npy",
+        "genre": "./data/vectors/vectorsGenre.npy",
+    }
+
+    # Load vectors if they exist
+    if all(os.path.exists(f) for f in vector_files.values()):
+        print("Loading saved vectors from disk...")
+        vectorsDes = np.load(vector_files["description"])
+        vectorsAuthor = np.load(vector_files["author"])
+        vectorsGenre = np.load(vector_files["genre"])
+    else:
+        print("Encoding vectors, this may take some time...")
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        
+        # Create vectors
+        vectorsDes = model.encode(descriptionTxt, batch_size=256, show_progress_bar=True)
+        vectorsAuthor = model.encode(authorTxt, batch_size=256, show_progress_bar=True)
+        vectorsGenre = model.encode(genreTxt, batch_size=256, show_progress_bar=True)
+
+        # Save vectors for future runs
+        np.save(vector_files["description"], vectorsDes)
+        np.save(vector_files["author"], vectorsAuthor)
+        np.save(vector_files["genre"], vectorsGenre)
+        print("Vectors saved to disk.")
+
+    # Vector weights
+    desc_weight = 1.0
+    genre_weight = 0.3  # very small weight for genre
+    author_weight = 0.6 # small weight for author
+
+    # Sum the vectors
+    combined_vectors = (vectorsDes * desc_weight + vectorsGenre * genre_weight + vectorsAuthor * author_weight)
+
+    # Normalize combined vectors (turn into unit vector equivalent)
+    combined_vectors = normalize(combined_vectors)
+    
+    # END OF COPIED CODE
+
     # Encode the query into vectors
     query_vectorDes = model.encode([query])[0]
     query_vectorAuthor = np.zeros_like(query_vectorDes)  # no author info
@@ -92,62 +208,6 @@ def recommend_from_query(query):
         "query": query,
         "recommendations": recommendations
     }
-
-# PRE-COMPUTATION
-csv_file = "./data/processed_data.csv"
-description_column = "description"
-title_column = "title"
-
-df = pd.read_csv(csv_file)
-descriptionTxt = df[description_column].astype(str).tolist()
-titleTxt = df[title_column].astype(str).tolist()
-
-# Get reranker model
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-# Combine authors into one string per book
-authorTxt = df['authors'].apply(lambda authors: " ".join(eval(authors)) if isinstance(authors, str) else "").tolist()
-
-# Combine genres into one string per book
-genreTxt = df['genre_list'].apply(lambda genres: " ".join(eval(genres)) if isinstance(genres, str) else "").tolist()
-
-vector_files = {
-    "description": "./data/vectors/vectorsDes.npy",
-    "author": "./data/vectors/vectorsAuthor.npy",
-    "genre": "./data/vectors/vectorsGenre.npy",
-}
-
-# Load vectors if they exist
-if all(os.path.exists(f) for f in vector_files.values()):
-    print("Loading saved vectors from disk...")
-    vectorsDes = np.load(vector_files["description"])
-    vectorsAuthor = np.load(vector_files["author"])
-    vectorsGenre = np.load(vector_files["genre"])
-else:
-    print("Encoding vectors, this may take some time...")
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    
-    # Create vectors
-    vectorsDes = model.encode(descriptionTxt, batch_size=256, show_progress_bar=True)
-    vectorsAuthor = model.encode(authorTxt, batch_size=256, show_progress_bar=True)
-    vectorsGenre = model.encode(genreTxt, batch_size=256, show_progress_bar=True)
-
-    # Save vectors for future runs
-    np.save(vector_files["description"], vectorsDes)
-    np.save(vector_files["author"], vectorsAuthor)
-    np.save(vector_files["genre"], vectorsGenre)
-    print("Vectors saved to disk.")
-
-# Vector weights
-desc_weight = 1.0
-genre_weight = 0.3  # very small weight for genre
-author_weight = 0.6 # small weight for author
-
-# Sum the vectors
-combined_vectors = (vectorsDes * desc_weight + vectorsGenre * genre_weight + vectorsAuthor * author_weight)
-
-# Normalize combined vectors (turn into unit vector equivalent)
-combined_vectors = normalize(combined_vectors)
 
 # # Get user interest/book
 # print("\nDo you want to pick a row from CSV or type a query?")
