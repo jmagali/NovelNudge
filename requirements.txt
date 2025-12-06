@@ -1,4 +1,5 @@
 pandas
 numpy
+rapidfuzz
 scikit-learn
 sentence-transformers
