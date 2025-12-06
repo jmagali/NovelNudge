@@ -60,6 +60,8 @@ def clean_authors(authors):
 
 df["authors"] = df["authors"].apply(clean_authors)
 df = df[df["authors"].map(len) > 0]
+df = df.drop_duplicates("authors")
+
 
 # Convert titles and subtitles to lowercase
 df["title"] = df["title"].apply(lambda title: title.lower())
