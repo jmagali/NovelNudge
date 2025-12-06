@@ -45,6 +45,9 @@ def extract_genres(category):
 df["genre_list"] = df["categories"].apply(extract_genres)
 df = df[df["genre_list"].map(len) > 0]
 
+# Drop categories
+df = df.drop(['categories'], axis=1)
+
 # Process Authors
 def clean_authors(authors):
     if not isinstance(authors, str):
@@ -56,9 +59,11 @@ def clean_authors(authors):
     return author_list
 
 df["authors"] = df["authors"].apply(clean_authors)
+df = df[df["authors"].map(len) > 0]
 
 # Convert titles and subtitles to lowercase
 df["title"] = df["title"].apply(lambda title: title.lower())
+df = df[df["title"].map(len) > 0]
 df["subtitle"] = df["subtitle"].apply(lambda subtitle: subtitle.lower())
 
 df.to_csv('./data/processed_data.csv', index=False)
