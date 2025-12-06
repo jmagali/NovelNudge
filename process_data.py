@@ -11,9 +11,6 @@ df = pd.read_csv('./data/unprocessedData.csv')
 # Fill null data with empty string
 df = df.fillna("")
 
-# Remove thumbnail
-df = df.drop(['thumbnail'], axis=1)
-
 # Clean data based on ISBN13/10 
 # Ensure proper data type; Remove duplicate ISBNs
 df["isbn13"] = df["isbn13"].astype(str).str.replace("-", "", regex=False)
