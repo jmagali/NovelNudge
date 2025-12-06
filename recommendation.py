@@ -41,7 +41,7 @@ def recommend_from_title(user_input):
         row = df.iloc[i]
         recommendations.append({
             "title": f"{row['title'].title()}: {row['subtitle'].title()}",
-            "author": ", ".join(eval(row["authors"])),
+            "author": ", ".join([author.title() for author in eval(row["authors"])]),
             "description": row["description"],
             "thumbnail": row["thumbnail"],
             "year": row["published_year"],
@@ -80,7 +80,7 @@ def recommend_from_query(query):
 
         recommendations.append({
             "title": f"{row['title'].title()}: {row['subtitle'].title()}",
-            "author": ", ".join(eval(row["authors"])),
+            "author": ", ".join([author.title() for author in eval(row["authors"])]),
             "description": row["description"],
             "thumbnail": row["thumbnail"],
             "year": row["published_year"],
