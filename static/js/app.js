@@ -13,11 +13,6 @@ function sendSearch() {
     mode = 2;
   }
 
-  // Make items visible
-  hiddenItems.forEach((element) => {
-    element.classList.remove("hidden");
-  });
-
   // Send data to backend
   const formData = new FormData();
   formData.append("query", query);
@@ -66,6 +61,11 @@ function sendSearch() {
       });
     })
     .catch((err) => console.error("Fetch error:", err));
+
+  // Make items visible
+  hiddenItems.forEach((element) => {
+    element.classList.remove("hidden");
+  });
 }
 
 function labeledText(label, value) {

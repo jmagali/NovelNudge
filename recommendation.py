@@ -102,15 +102,7 @@ def recommend_book(user_input, mode):
         for i, similarity in top_similar:
             row = df.iloc[i]
 
-            # Fix subtitle handling
-            subtitle = row["subtitle"]
-            if isinstance(subtitle, float) or pd.isna(subtitle):
-                subtitle = ""
-            else:
-                subtitle = subtitle.title()
-
-            title = row["title"].title()
-            full_title = f"{title}: {subtitle}".strip(": ")
+            full_title = safe_title(row["title"], row["subtitle"])
 
             recommendations.append({
                 "title": full_title,
@@ -142,16 +134,8 @@ def recommend_book(user_input, mode):
         recommendations = []
         for i, similarity in top_similar:
             row = df.iloc[i]
-
-            # Fix subtitle handling
-            subtitle = row["subtitle"]
-            if isinstance(subtitle, float) or pd.isna(subtitle):
-                subtitle = ""
-            else:
-                subtitle = subtitle.title()
-
-            title = row["title"].title()
-            full_title = f"{title}: {subtitle}".strip(": ")
+            
+            full_title = safe_title(row["title"], row["subtitle"])
 
             recommendations.append({
                 "title": full_title,
@@ -174,3 +158,14 @@ def safe_val(val):
     if pd.isna(val) or val is None:
         return ""
     return str(val)
+
+def safe_title(title, subtitle):
+    if isinstance(subtitle, float) or pd.isna(subtitle):
+        subtitle = ""
+    else:
+        subtitle = subtitle.title()
+
+    title = title.title()
+    full_title = f"{title}: {subtitle}".strip(": ")
+
+    return full_title
