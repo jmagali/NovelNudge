@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity # Finds the angle between
 from sklearn.preprocessing import normalize # Finds the unit vector of a vector
 
 # Functions
-def get_top_n_similar(vector_list, target_vector, top_n=10, exclude_index=None):
+def get_top_n_similar(vector_list, target_vector, top_n=20, exclude_index=None):
     # Given a target vector, return top N most similar row indices and similarity scores.
     scores = cosine_similarity([target_vector], vector_list)[0]
     
@@ -71,7 +71,7 @@ def recommend_book(user_input, mode):
         desc_weight = 1.0
         genre_weight = 0.3  # very small weight for genre
         title_weight = 0.4
-        author_weight = 0.6 # small weight for author
+        author_weight = 1.1
 
         # Sum the vectors
         combined_vectors = (vectorsDes * desc_weight + vectorsGenre * genre_weight + vectorsAuthor * author_weight + vectorsTitle * title_weight)
@@ -94,7 +94,7 @@ def recommend_book(user_input, mode):
         target_vector = combined_vectors[row_index]
         
         # Find similar books
-        top_similar = get_top_n_similar(combined_vectors, target_vector, top_n=10,
+        top_similar = get_top_n_similar(combined_vectors, target_vector, top_n=20,
                                     exclude_index=row_index)
         
         # Build JSON payload
@@ -128,7 +128,7 @@ def recommend_book(user_input, mode):
         target_vector = normalize(query_vector.reshape(1, -1))[0]
         
         # Find top similar books
-        top_similar = get_top_n_similar(combined_vectors, query_vector, top_n=10)
+        top_similar = get_top_n_similar(combined_vectors, query_vector, top_n=20)
         
         # Build JSON payload
         recommendations = []
