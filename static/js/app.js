@@ -1,48 +1,88 @@
 function sendSearch() {
-    let query = document.getElementById("searchBox").value;
-    let btn = 1
+  const query = document.getElementById("searchBox").value;
+  const modeBtn = document.getElementById("mode");
+  let mode;
 
-    if (query == "" || query == null) {
-        query = document.getElementById("sentanceBox").value;
-        btn = 2
+  if (modeBtn.classList.contains("title")) {
+    mode = 1;
+  } else {
+    mode = 2;
+  }
 
-    }
+  // Send data to backend
+  const formData = new FormData();
+  formData.append("query", query);
+  formData.append("mode", mode);
 
-    const formData = new FormData();
-    formData.append("query", query);
-    formData.append("btn", btn);
+  fetch("/search", {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      // TITLE SEARCH RESPONSE
+      const bestTitle = data.matched_title || data.query || "No match";
+      const bestScore = data.matched_score || "N/A";
 
-    fetch("/search", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        // TITLE SEARCH RESPONSE
-        const bestTitle = data.matched_title || data.query || "No match";
-        const bestScore = data.matched_score || "N/A";
-
-        document.getElementById("bestMatch").innerHTML = `
+      document.getElementById("bestMatch").innerHTML = `
             <h3>Best Match: ${bestTitle}</h3>
             <p>Similarity Score: ${bestScore}</p>
         `;
 
-        const recDiv = document.getElementById("recommendations");
-        recDiv.innerHTML = "";
+      const recDiv = document.getElementById("recommendations");
+      recDiv.innerHTML = "";
 
-        data.recommendations.forEach(rec => {
-            recDiv.innerHTML += `
-                <div class="book-card">
-                    <img src="${rec.thumbnail}" alt="">
-                    <h3>${rec.title}</h3>
-                    <p><strong>Author:</strong> ${rec.author}</p>
-                    <p><strong>Year:</strong> ${rec.year}</p>
-                    <p>${rec.description}</p>
-                    <p><strong>Similarity:</strong> ${rec.similarity}</p>
-                </div>
-            `;
-        });
+      data.recommendations.forEach((rec) => {
+        // Create card for each book
+        const bookCard = document.createElement("div");
+        bookCard.classList.add("book-card");
+        recDiv.appendChild(bookCard);
+
+        // Create book thumbnail
+        const thumbnail = document.createElement("img");
+        thumbnail.src = `${rec.thumbnail}`;
+        thumbnail.alt = "";
+        bookCard.appendChild(thumbnail);
+
+        // Append book data
+        const title = document.createElement("h3");
+        title.textContent = `${rec.title}`;
+        bookCard.appendChild(title);
+
+        bookCard.appendChild(labeledText("Author", rec.author));
+        bookCard.appendChild(labeledText("Synopsis", rec.description));
+        bookCard.appendChild(labeledText("Year", rec.year));
+        bookCard.appendChild(labeledText("Rating", `${rec.rating}/5.0`));
+        bookCard.appendChild(labeledText("Similarity", rec.similarity));
+      });
     })
-    .catch(err => console.error("Fetch error:", err));
+    .catch((err) => console.error("Fetch error:", err));
+}
+
+function labeledText(label, value) {
+  const p = document.createElement("p");
+  const strong = document.createElement("strong");
+
+  strong.textContent = label + ": ";
+  p.appendChild(strong);
+  p.appendChild(document.createTextNode(value));
+
+  return p;
+}
+
+function changeMode() {
+  const modeBtn = document.getElementById("mode");
+  const searchBox = document.getElementById("searchBox");
+
+  if (modeBtn.classList.contains("title")) {
+    modeBtn.classList.remove("title");
+    modeBtn.classList.add("query");
+    modeBtn.textContent = "Book Description";
+    searchBox.placeholder = "Enter a book description...";
+  } else {
+    modeBtn.classList.remove("query");
+    modeBtn.classList.add("title");
+    modeBtn.textContent = "Book Title";
+    searchBox.placeholder = "Enter a book Search for a book...";
+  }
 }

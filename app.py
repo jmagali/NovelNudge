@@ -1,12 +1,12 @@
-from flask import Flask, render_template, request, jsonify
+import os
 import numpy as np
 import pandas as pd
-import os
+import recommendation
 from rapidfuzz import process, fuzz
+from sklearn.preprocessing import normalize
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.preprocessing import normalize
-import recommendation
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
@@ -18,14 +18,9 @@ def index():
 @app.route("/search", methods=["POST"])
 def search():
     query = request.form["query"]
-    btn = int(request.form["btn"])
+    mode = int(request.form["mode"])
 
-    if btn == 1:
-        # covert returned object into JSON
-        return jsonify(recommendation.recommend_from_title(query))
-    else:
-        return jsonify(recommendation.recommend_from_query(query))
-
+    return jsonify(recommendation.recommend_book(query, mode))
 
 if __name__ == "__main__":
     app.run(debug=True)
